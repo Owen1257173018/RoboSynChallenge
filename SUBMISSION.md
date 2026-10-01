@@ -26,11 +26,12 @@ gripper values (e.g. table_rearrangement).
 ## Environment (two Python environments)
 
 ```bash
-# 1) simulator + evaluator: EmbodiChain v0.2.4 (lerobot 0.4.4, numpy < 2)
+# 1) simulator + evaluator: EmbodiChain v0.2.4, as in the official installation guide
+#    (pulls lerobot 0.4.4; numpy must then be forced below 2.0)
 git clone --branch v0.2.4 https://github.com/DexForce/EmbodiChain.git ../EmbodiChain
 cd ../EmbodiChain && uv venv --python 3.11 .venv && source .venv/bin/activate
 uv pip install -e . --extra-index-url http://pyp.open3dv.site:2345/simple/ --allow-insecure-host pyp.open3dv.site:2345
-uv pip install "numpy<2.0" "lerobot[smolvla]==0.4.4" && uv pip install "numpy<2.0"
+uv pip install "numpy<2.0"
 cd ../RoboSynChallenge && uv pip install -e .
 
 # 2) SmolVLA worker + training: LeRobot 0.6.2 at the exact commit we used (Python 3.12)
@@ -39,6 +40,11 @@ git -C policy/smolvla/lerobot checkout 89236ea0f4f81a81ca566081e20dd1ff5f823cbe
 cd policy/smolvla && uv venv --python 3.12 .venv && source .venv/bin/activate
 uv pip install -e "./lerobot[smolvla,dataset]" && cd ../..
 ```
+
+If the extra index cannot be reached for ordinary packages (it redirects them to a PyPI
+mirror), install the one package it hosts first and the rest from PyPI:
+`uv pip install --index-url http://pyp.open3dv.site:2345/simple/ --allow-insecure-host pyp.open3dv.site:2345 --no-deps "dexsim_engine==0.4.3"`,
+then `uv pip install --index-url https://pypi.org/simple -e .` and the two steps after it.
 
 Evaluation needs no network access: the worker loads each checkpoint together with the
 bundled `policy/smolvla/smolvlm2_base/` files (tested with an empty Hugging Face cache and
@@ -76,9 +82,17 @@ step directory containing one). Results land in
 
 ## Checkpoints (one per task)
 
-Upload: `policy/smolvla/.venv/bin/python tools/upload_checkpoints.py --namespace <hf_user_or_org>`
-prints the plan (one model repo per task, built from the table below); add
-`--upload` to push. Replace the local paths below with the printed links.
+Every checkpoint is a public Hugging Face model repo containing the LeRobot
+`pretrained_model` folder (weights, config, pre/post-processors, tokenizer). Download one and
+pass the folder to `eval.sh`:
+
+```bash
+HF_ENDPOINT=https://huggingface.co hf download owen1257173018/robosynchallenge-xvla-click-bell --local-dir ckpt/click_bell
+bash policy/smolvla/eval.sh click_bell random ckpt/click_bell <gpu> --pytorch_device cuda --headless true --renderer auto --max_episodes 100
+```
+
+(`tools/upload_checkpoints.py --namespace owen1257173018 --upload` created these repos from
+the local runs named in the second column.)
 
 "Local SR" is a 100-episode run in submission mode (`tools/final_eval.sh`:
 the plain `policy/smolvla/eval.sh` call with the per-task table, no policy
@@ -89,18 +103,18 @@ parameters. "Data" counts episodes: official = the organizers' 1000-episode sim
 dataset, local = episodes we generated with the official EmbodiChain pipeline
 (`launch/run_task.sh`, `random` / `clear` settings).
 
-| Task | Checkpoint (local path → HF link TBD) | Data | Inference settings | Local SR |
-|---|---|---|---|---:|
-| click_bell | `xvla_click_bell_run1_2500eps/checkpoints/030000` | official 1000 + local 1500 random (X-VLA⁷) | steps 10 | 99%⁷ |
-| table_rearrangement | `xvla_table_rearrangement_run1/checkpoints/030000` | official 1000 (X-VLA⁷) | steps 10, `fresh`, K=4 (table) | 94%⁷ |
-| water_pouring | `xvla_water_pouring_run1_1900eps/checkpoints/030000` | official 1000 + local 900 (600 clear + 300 random) (X-VLA⁷) | steps 10, `fresh`, K=4 (table) | 96%³ ⁷ |
-| handle_basket | `xvla_handle_basket_run1_1500eps/checkpoints/030000` | official 1000 + local 500 random (X-VLA⁷) | steps 20, `fresh`, K=4 (table) | 85%¹ ⁷ |
-| items_handover | `xvla_items_handover_run1_1500eps/checkpoints/030000` | official 1000 + local 500 (X-VLA⁷) | steps 20, `fresh`, K=4 (table) | 86%¹ ⁷ |
-| drawer_open_place | `xvla_drawer_open_place_run1_2000eps/checkpoints/030000` | official 1000 + local 1000 random (X-VLA⁷) | steps 10 | 95%⁷ |
-| mixer_operating | `xvla_mixer_operating_run1_1500eps/checkpoints/030000` | official 1000 + local 500 (X-VLA⁷) | steps 20, `fresh`, K=4 (table) | 99%⁷ |
-| item_assembly | `xvla_item_assembly_run1_trim_2000eps/checkpoints/030000` | official 1000 + local 1000, static end-of-demo hold excluded⁴ (X-VLA⁷) | steps 20 (table) | 83%⁶ ⁷ |
-| manipulate_pipette | `xvla_manipulate_pipette_run1_1500eps/checkpoints/030000` | official 1000 + local 500 (X-VLA⁷) | steps 10, `fresh`, K=4 (table) | 59%⁷ |
-| sample_loading | `xvla_sample_loading_run1/checkpoints/030000` | official 1000 (X-VLA⁷) | steps 10 | 10%² ⁷ |
+| Task | Checkpoint (local run) | Hugging Face | Data | Inference settings | Local SR |
+|---|---|---|---|---|---:|
+| click_bell | `xvla_click_bell_run1_2500eps/checkpoints/030000` | [robosynchallenge-xvla-click-bell](https://huggingface.co/owen1257173018/robosynchallenge-xvla-click-bell) | official 1000 + local 1500 random (X-VLA⁷) | steps 10 | 99%⁷ |
+| table_rearrangement | `xvla_table_rearrangement_run1/checkpoints/030000` | [robosynchallenge-xvla-table-rearrangement](https://huggingface.co/owen1257173018/robosynchallenge-xvla-table-rearrangement) | official 1000 (X-VLA⁷) | steps 10, `fresh`, K=4 (table) | 94%⁷ |
+| water_pouring | `xvla_water_pouring_run1_1900eps/checkpoints/030000` | [robosynchallenge-xvla-water-pouring](https://huggingface.co/owen1257173018/robosynchallenge-xvla-water-pouring) | official 1000 + local 900 (600 clear + 300 random) (X-VLA⁷) | steps 10, `fresh`, K=4 (table) | 96%³ ⁷ |
+| handle_basket | `xvla_handle_basket_run1_1500eps/checkpoints/030000` | [robosynchallenge-xvla-handle-basket](https://huggingface.co/owen1257173018/robosynchallenge-xvla-handle-basket) | official 1000 + local 500 random (X-VLA⁷) | steps 20, `fresh`, K=4 (table) | 85%¹ ⁷ |
+| items_handover | `xvla_items_handover_run1_1500eps/checkpoints/030000` | [robosynchallenge-xvla-items-handover](https://huggingface.co/owen1257173018/robosynchallenge-xvla-items-handover) | official 1000 + local 500 (X-VLA⁷) | steps 20, `fresh`, K=4 (table) | 86%¹ ⁷ |
+| drawer_open_place | `xvla_drawer_open_place_run1_2000eps/checkpoints/030000` | [robosynchallenge-xvla-drawer-open-place](https://huggingface.co/owen1257173018/robosynchallenge-xvla-drawer-open-place) | official 1000 + local 1000 random (X-VLA⁷) | steps 10 | 95%⁷ |
+| mixer_operating | `xvla_mixer_operating_run1_1500eps/checkpoints/030000` | [robosynchallenge-xvla-mixer-operating](https://huggingface.co/owen1257173018/robosynchallenge-xvla-mixer-operating) | official 1000 + local 500 (X-VLA⁷) | steps 20, `fresh`, K=4 (table) | 99%⁷ |
+| item_assembly | `xvla_item_assembly_run1_trim_2000eps/checkpoints/030000` | [robosynchallenge-xvla-item-assembly](https://huggingface.co/owen1257173018/robosynchallenge-xvla-item-assembly) | official 1000 + local 1000, static end-of-demo hold excluded⁴ (X-VLA⁷) | steps 20 (table) | 83%⁶ ⁷ |
+| manipulate_pipette | `xvla_manipulate_pipette_run1_1500eps/checkpoints/030000` | [robosynchallenge-xvla-manipulate-pipette](https://huggingface.co/owen1257173018/robosynchallenge-xvla-manipulate-pipette) | official 1000 + local 500 (X-VLA⁷) | steps 10, `fresh`, K=4 (table) | 59%⁷ |
+| sample_loading | `xvla_sample_loading_run1/checkpoints/030000` | [robosynchallenge-xvla-sample-loading](https://huggingface.co/owen1257173018/robosynchallenge-xvla-sample-loading) | official 1000 (X-VLA⁷) | steps 10 | 10%² ⁷ |
 
 ¹ Why these tasks use `fresh` + K=4: paired A/B runs (50 scenes, `smolvla_seed:
 1000` so both arms see identical policy noise). Stock (`queue`, K=1) vs `fresh` + K=4:
