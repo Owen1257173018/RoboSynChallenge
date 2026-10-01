@@ -1,0 +1,4 @@
+Configuration, processor and tokenizer files of HuggingFaceTB/SmolVLM2-500M-Video-Instruct
+(snapshot 7b375e1b73b11138ff12fe22c8f2822d8fe03467), without model weights. The SmolVLA worker builds the VLM
+architecture from these files so that loading a checkpoint needs no network access;
+all weights come from the checkpoint's own model.safetensors.

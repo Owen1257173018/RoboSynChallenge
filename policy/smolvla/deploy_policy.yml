@@ -1,0 +1,79 @@
+# SmolVLA Policy Evaluation Configuration
+
+policy_name: smolvla
+task_name: click_bell
+setting: clear
+model_name: smolvla
+seed: 0
+max_episodes: 1
+max_steps: 100
+headless: true
+device: cpu
+renderer: auto
+gpu_id: 0
+pytorch_device: cuda
+num_envs: 1
+filter_dataset_saving: true
+eval_video_log: false
+eval_video_obs_key: cam_high
+eval_expert_check: true
+
+# eval.sh supplies checkpoint_dir from its third argument. A checkpoint step
+# directory containing pretrained_model/ is also accepted.
+checkpoint_dir: ""
+# Optional. If empty, the worker imports the installed lerobot package. You can
+# also set SMOLVLA_LEROBOT_ROOT or pass --lerobot_root policy/smolvla/lerobot.
+lerobot_root: ""
+# Optional. If empty, eval uses SMOLVLA_PYTHON or the current eval Python.
+smolvla_python: ""
+smolvla_cuda_visible_devices: 0
+smolvla_steps: 10
+smolvla_rescale_gripper: auto
+smolvla_gripper_indices: [6, 13]
+smolvla_gripper_source_range: [0.0, 1.0]
+# Inference-time knobs added by us (defaults keep the stock behaviour):
+#   smolvla_action_samples: average N flow-matching draws per action chunk (1 = stock)
+#   smolvla_chunk_mode: "queue" = stock persistent action queue, "fresh" = re-plan每次
+#   smolvla_seed: base seed for the policy's sampling noise; null = stochastic (stock)
+smolvla_action_samples: 1
+smolvla_chunk_mode: queue
+smolvla_seed: null
+# Anti-stall (0 = off): if the arm joints move less than smolvla_antistall_eps rad
+# over smolvla_antistall_window env steps (longer than any pause in the demos) and
+# the task is not done, draw smolvla_antistall_samples chunks and execute
+# smolvla_antistall_steps actions of the one that moves the arms furthest.
+smolvla_antistall_window: 0
+smolvla_antistall_eps: 0.01
+smolvla_antistall_samples: 8
+smolvla_antistall_steps: 50
+# Flow-matching integration steps per action chunk at inference (0 = checkpoint default, 10).
+smolvla_denoise_steps: 0
+# Per-task inference settings validated with paired (same scene seed) evals.
+# Applied on top of the values above; any key given explicitly on the eval
+# command line (e.g. --smolvla_steps 10) takes precedence over this table.
+# steps 20: significantly better for items_handover/mixer (paired McNemar);
+# handle_basket/item_assembly: best measured config, 10 vs 20 not significant.
+smolvla_task_overrides:
+  table_rearrangement:        # X-VLA checkpoint: fresh+K4 94% vs queue 92% (100 scenes); SmolVLA fallback used the defaults (queue)
+    smolvla_chunk_mode: fresh
+    smolvla_action_samples: 4
+  items_handover:              # fresh+K4: 46% -> 76% on paired seeds, p=0.0015
+    smolvla_steps: 20
+    smolvla_chunk_mode: fresh
+    smolvla_action_samples: 4
+  mixer_operating:            # X-VLA checkpoint: fresh+K4 99% vs queue 52% (100 scenes, 47/0); SmolVLA fallback used steps 20 only
+    smolvla_steps: 20
+    smolvla_chunk_mode: fresh
+    smolvla_action_samples: 4
+  handle_basket:               # fresh+K4: 58% -> 84% on paired seeds, p=0.0023
+    smolvla_steps: 20
+    smolvla_chunk_mode: fresh
+    smolvla_action_samples: 4
+  manipulate_pipette:          # fresh+K4: 47% -> 69% on paired seeds, p=0.043
+    smolvla_chunk_mode: fresh
+    smolvla_action_samples: 4
+  item_assembly:               # fresh+K4 did not help (58% -> 48%, p=0.40): stock
+    smolvla_steps: 20
+  water_pouring:               # fresh+K4: 68% -> 82% (run1, p=0.19, not proven); B >= A -> adopt
+    smolvla_chunk_mode: fresh
+    smolvla_action_samples: 4
