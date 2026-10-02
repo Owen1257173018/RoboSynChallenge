@@ -38,6 +38,15 @@ for i in "${!EXTRA_ARGS[@]}"; do
     esac
 done
 
+# Policy worker Python: SMOLVLA_PYTHON if set, otherwise the environment that the
+# README setup creates next to this script (policy/smolvla/.venv). Without it the
+# worker would fall back to the simulator's Python 3.11, which cannot run the
+# LeRobot version our checkpoints need (Python >= 3.12).
+WORKER_PY_SOURCE="SMOLVLA_PYTHON"
+if [[ -z "${SMOLVLA_PYTHON:-}" && -x "$SCRIPT_DIR/.venv/bin/python" ]]; then
+    SMOLVLA_PYTHON="$SCRIPT_DIR/.venv/bin/python"
+    WORKER_PY_SOURCE="auto-detected"
+fi
 if [[ -n "${SMOLVLA_PYTHON:-}" ]]; then
     EXTRA_ARGS+=(--smolvla_python "$SMOLVLA_PYTHON")
 fi
@@ -64,13 +73,13 @@ export EMBODICHAIN_SIM_EXIT_PROCESS="${EMBODICHAIN_SIM_EXIT_PROCESS:-0}"
 export PYTHONPATH="$REPO_ROOT:$REPO_ROOT/policy:$EMBODICHAIN_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 
 echo "========================================="
-echo "  SmolVLA Policy Evaluation"
+echo "  Policy Evaluation (policy/smolvla adapter)"
 echo "  Task:       $TASK_NAME ($SETTING)"
 echo "  Checkpoint: $CHECKPOINT_DIR"
 echo "  GPU:        $GPU_ID"
 echo "  Python:     $PYTHON_BIN"
 if [[ -n "${SMOLVLA_PYTHON:-}" ]]; then
-    echo "  Worker Py:  $SMOLVLA_PYTHON"
+    echo "  Worker Py:  $SMOLVLA_PYTHON ($WORKER_PY_SOURCE)"
 else
     echo "  Worker Py:  current eval Python"
 fi
@@ -90,6 +99,13 @@ fi
 
 if [[ ! -d "$CHECKPOINT_DIR" ]]; then
     echo "Error: checkpoint directory does not exist: $CHECKPOINT_DIR" >&2
+    exit 1
+fi
+
+if ! "${SMOLVLA_PYTHON:-$PYTHON_BIN}" -c 'import sys; sys.exit(sys.version_info < (3, 12))' 2>/dev/null; then
+    echo "Error: the policy worker Python (${SMOLVLA_PYTHON:-$PYTHON_BIN}) is older than 3.12" >&2
+    echo "       and cannot run the LeRobot version these checkpoints need. Create" >&2
+    echo "       policy/smolvla/.venv as in README.md (step 1), or set SMOLVLA_PYTHON." >&2
     exit 1
 fi
 
