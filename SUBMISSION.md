@@ -39,15 +39,19 @@ simulation dataset plus episodes we generated with the official pipeline
 Settings: *steps* = actions executed per inference call; *fresh* = plan a new action chunk from
 the current observation at every call (otherwise the chunk is replanned only when it is used
 up); *K=4* = average four sampled action chunks. "Local SR" = 100 episodes in our environment
-with the public parameters (`random`, evaluation seed 0) and the plain `eval.sh` command.
+with the public parameters (`random`, evaluation seed 0) and the plain `eval.sh` command, using
+the starter kit before 2026-10-01 (randomized top camera); the README lists 50-episode results
+with the current starter kit.
 
 ¹ The static end-of-demo hold (arms still after the task is done) is excluded from training
 (metadata only, `tools/trim_static_tails.py`).
 
 ## Reproduction check (2026-10-02)
 
-From a fresh clone of this repository, both environments were built from scratch as in the
-README, the ten checkpoints were downloaded from Hugging Face (byte-identical to ours) and every
-task was evaluated with the README command, with an empty Hugging Face cache and
-`HF_HUB_OFFLINE=1`: 81/99 successes over the first ten scenes of the ten tasks, the same as our
-own runs on those scenes (81/99).
+From a fresh clone of this repository, with both environments built exactly as in the README
+(starter kit of 2026-10-01, EmbodiChain v0.2.4.post1, numpy 2.x) and the ten checkpoints
+downloaded from Hugging Face (byte-identical to ours), every task was evaluated with the README
+command, 50 episodes each, with an empty Hugging Face cache and `HF_HUB_OFFLINE=1`:
+391/500 successes (78.2%). Our earlier 100-episode runs with the previous starter kit (randomized
+top camera) averaged 80.6%; no task differs significantly between the two (exact McNemar on the
+shared scenes, all p ≥ 0.18).
