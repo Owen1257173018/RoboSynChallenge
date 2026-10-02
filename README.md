@@ -15,11 +15,11 @@ evaluator, and one for the policy worker (LeRobot at a pinned commit, Python 3.1
 # workspace layout: RoboSynChallenge_ws/{EmbodiChain, RoboSynChallenge}
 git clone https://github.com/Owen1257173018/RoboSynChallenge.git && cd RoboSynChallenge
 
-# simulator + evaluator: EmbodiChain v0.2.4, as in the official installation guide
-git clone --branch v0.2.4 https://github.com/DexForce/EmbodiChain.git ../EmbodiChain
+# simulator + evaluator: EmbodiChain v0.2.4.post1 with uv, as in the official installation guide
+git clone https://github.com/DexForce/EmbodiChain.git ../EmbodiChain
+git -C ../EmbodiChain checkout tags/v0.2.4.post1
 cd ../EmbodiChain && uv venv --python 3.11 .venv && source .venv/bin/activate
-uv pip install -e . --extra-index-url http://pyp.open3dv.site:2345/simple/ --allow-insecure-host pyp.open3dv.site:2345
-uv pip install "numpy<2.0"
+uv pip install -e . --extra-index-url http://pyp.open3dv.site:2345/simple/ --trusted-host pyp.open3dv.site
 cd ../RoboSynChallenge && uv pip install -e . && deactivate
 
 # policy worker: eval.sh finds policy/smolvla/.venv automatically
