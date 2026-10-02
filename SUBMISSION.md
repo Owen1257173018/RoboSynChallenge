@@ -46,6 +46,12 @@ mirror), install the one package it hosts first and the rest from PyPI:
 `uv pip install --index-url http://pyp.open3dv.site:2345/simple/ --allow-insecure-host pyp.open3dv.site:2345 --no-deps "dexsim_engine==0.4.3"`,
 then `uv pip install --index-url https://pypi.org/simple -e .` and the two steps after it.
 
+Reproduction check (2026-10-02): both environments were rebuilt from scratch from a fresh clone
+of this repository, all ten checkpoints were downloaded from Hugging Face (byte-identical to
+ours), and every task was evaluated with the `eval.sh` command below with an empty Hugging Face
+cache and `HF_HUB_OFFLINE=1`: 81/99 successes over the first ten scenes of the ten tasks, the
+same as our own runs on those scenes (81/99); handle_basket over 40 scenes 37/40 vs 36/40.
+
 Evaluation needs no network access: the worker loads each checkpoint together with the
 bundled `policy/smolvla/smolvlm2_base/` files (tested with an empty Hugging Face cache and
 `HF_HUB_OFFLINE=1`). The X-VLA checkpoint needs nothing beyond this environment (LeRobot's
