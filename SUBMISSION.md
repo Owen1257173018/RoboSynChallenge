@@ -26,15 +26,15 @@ simulation dataset plus episodes we generated with the official pipeline
 | Task | Trained run | Hugging Face | Training episodes | Settings (automatic) | Local SR |
 |---|---|---|---|---|---:|
 | click_bell | `xvla_click_bell_run1_2500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-click-bell) | official 1000 + 1500 random | steps 10 | 99% |
-| table_rearrangement | `xvla_table_rearrangement_run1/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-table-rearrangement) | official 1000 | steps 10, fresh, K=4 | 94% |
+| table_rearrangement | `xvla_table_rearrangement_run1/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-table-rearrangement) | official 1000 | steps 20, fresh | 92%² |
 | water_pouring | `xvla_water_pouring_run1_1900eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-water-pouring) | official 1000 + 600 clear + 300 random | steps 10, fresh, K=4 | 96% |
 | handle_basket | `xvla_handle_basket_run1_1500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-handle-basket) | official 1000 + 500 random | steps 20, fresh, K=4 | 85% |
-| items_handover | `xvla_items_handover_run1_1500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-items-handover) | official 1000 + 500 random | steps 20, fresh, K=4 | 86% |
+| items_handover | `xvla_items_handover_run1_1500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-items-handover) | official 1000 + 500 random | steps 20, fresh | 85%² |
 | drawer_open_place | `xvla_drawer_open_place_run1_2000eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-drawer-open-place) | official 1000 + 1000 random | steps 10 | 95% |
 | mixer_operating | `xvla_mixer_operating_run1_1500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-mixer-operating) | official 1000 + 500 random | steps 20, fresh, K=4 | 99% |
 | item_assembly | `xvla_item_assembly_run1_trim_2000eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-item-assembly) | official 1000 + 1000 random¹ | steps 20 | 83% |
-| manipulate_pipette | `xvla_manipulate_pipette_run1_1500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-manipulate-pipette) | official 1000 + 500 random | steps 10, fresh, K=4 | 59% |
-| sample_loading | `xvla_sample_loading_run1/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-sample-loading) | official 1000 | steps 10 | 10% |
+| manipulate_pipette | `xvla_manipulate_pipette_run1_1500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-manipulate-pipette) | official 1000 + 500 random | steps 20, fresh | 57%² |
+| sample_loading | `xvla_sample_loading_run1/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-sample-loading) | official 1000 | steps 10, fresh | 15%² |
 
 Settings: *steps* = actions executed per inference call; *fresh* = plan a new action chunk from
 the current observation at every call (otherwise the chunk is replanned only when it is used
@@ -45,6 +45,15 @@ with the current starter kit.
 
 ¹ The static end-of-demo hold (arms still after the task is done) is excluded from training
 (metadata only, `tools/trim_static_tails.py`).
+
+² 100 episodes with the starter kit of 2026-10-01 and the current setting. The settings were first
+chosen for SmolVLA; on 2026-10-09/10 every task was re-checked for X-VLA on paired scenes of
+evaluation seeds 0 and 1 (100 episodes per setting and seed), and a change was kept only if it
+won on both sets of scenes together. Changed: manipulate_pipette (one sample instead of K=4: 107 vs
+100 successes on 194 scenes; then 20 actions per call: 113 vs 107 on 193 scenes), items_handover
+(one sample: 174 vs 165 on 200 scenes), table_rearrangement (one sample, 20 actions per call:
+188 vs 176 on 200 scenes), sample_loading (fresh instead of the queue: 27 vs 20 on 197 scenes).
+The other tasks kept their settings.
 
 ## Reproduction check (2026-10-02)
 

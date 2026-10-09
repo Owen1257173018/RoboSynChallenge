@@ -64,19 +64,24 @@ written to `eval_result/<task_name>/smolvla/random/None/.../evaluation_metrics.j
 | Task | Hugging Face checkpoint | Local success rate* |
 |---|---|---:|
 | click_bell | [owen1257173018/robosynchallenge-xvla-click-bell](https://huggingface.co/owen1257173018/robosynchallenge-xvla-click-bell) | 98% |
-| table_rearrangement | [owen1257173018/robosynchallenge-xvla-table-rearrangement](https://huggingface.co/owen1257173018/robosynchallenge-xvla-table-rearrangement) | 90% |
+| table_rearrangement | [owen1257173018/robosynchallenge-xvla-table-rearrangement](https://huggingface.co/owen1257173018/robosynchallenge-xvla-table-rearrangement) | 92%† |
 | water_pouring | [owen1257173018/robosynchallenge-xvla-water-pouring](https://huggingface.co/owen1257173018/robosynchallenge-xvla-water-pouring) | 92% |
 | handle_basket | [owen1257173018/robosynchallenge-xvla-handle-basket](https://huggingface.co/owen1257173018/robosynchallenge-xvla-handle-basket) | 78% |
-| items_handover | [owen1257173018/robosynchallenge-xvla-items-handover](https://huggingface.co/owen1257173018/robosynchallenge-xvla-items-handover) | 84% |
+| items_handover | [owen1257173018/robosynchallenge-xvla-items-handover](https://huggingface.co/owen1257173018/robosynchallenge-xvla-items-handover) | 85%† |
 | drawer_open_place | [owen1257173018/robosynchallenge-xvla-drawer-open-place](https://huggingface.co/owen1257173018/robosynchallenge-xvla-drawer-open-place) | 92% |
 | mixer_operating | [owen1257173018/robosynchallenge-xvla-mixer-operating](https://huggingface.co/owen1257173018/robosynchallenge-xvla-mixer-operating) | 100% |
 | item_assembly | [owen1257173018/robosynchallenge-xvla-item-assembly](https://huggingface.co/owen1257173018/robosynchallenge-xvla-item-assembly) | 70% |
-| manipulate_pipette | [owen1257173018/robosynchallenge-xvla-manipulate-pipette](https://huggingface.co/owen1257173018/robosynchallenge-xvla-manipulate-pipette) | 56% |
-| sample_loading | [owen1257173018/robosynchallenge-xvla-sample-loading](https://huggingface.co/owen1257173018/robosynchallenge-xvla-sample-loading) | 22% |
+| manipulate_pipette | [owen1257173018/robosynchallenge-xvla-manipulate-pipette](https://huggingface.co/owen1257173018/robosynchallenge-xvla-manipulate-pipette) | 57%† |
+| sample_loading | [owen1257173018/robosynchallenge-xvla-sample-loading](https://huggingface.co/owen1257173018/robosynchallenge-xvla-sample-loading) | 15%† |
 
 \* 50 episodes per task in a fresh setup built exactly as above (starter kit of 2026-10-01,
 EmbodiChain v0.2.4.post1), public parameters (`random` setting, evaluation seed 0), command
 above; for reference when checking a setup.
+
+† 100 episodes in our local setup with the task's current inference setting, changed on
+2026-10-09/10 after re-checking the settings for X-VLA (see SUBMISSION.md, note ²).
+sample_loading succeeds rarely, so its rate varies a lot from run to run (9% to 22% across our
+50- and 100-episode evaluations).
 
 ## More
 
