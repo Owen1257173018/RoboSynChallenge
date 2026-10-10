@@ -1,17 +1,17 @@
 # Submission notes
 
 How to set up and run the evaluation is in [README.md](README.md). This file lists what we
-changed relative to the starter kit and what each checkpoint was trained on.
+changed relative to the starter kit and how each checkpoint was trained.
 
 ## What we changed (relative to EDEM-AI/RoboSynChallenge)
 
 | File | Change |
 |---|---|
-| `policy/smolvla/smolvla_worker.py` | Loads X-VLA as well as SmolVLA checkpoints (chosen from the `type` field of the checkpoint's `config.json`) and casts X-VLA's bfloat16 actions to float32. Converts uint8 camera frames to float before preprocessing. Loads checkpoints without network access. Implements the `fresh` and K-sample inference modes used by the settings table. |
-| `policy/smolvla/deploy_policy.py` | `eval()` returns the 4-tuple that `scripts/eval_policy.py` expects and stops executing an action chunk once the task has succeeded. Applies the per-task settings table `smolvla_task_overrides` from the task name (keys given on the command line take precedence). |
-| `policy/smolvla/deploy_policy.yml` | Holds the per-task settings table. |
+| `policy/smolvla/smolvla_worker.py` | Loads X-VLA as well as SmolVLA checkpoints (chosen from the `type` field of the checkpoint's `config.json`) and casts X-VLA's bfloat16 actions to float32. Converts uint8 camera frames to float before preprocessing. Loads checkpoints without network access. Implements the `fresh` and multi-sample inference modes used by the per-task settings. |
+| `policy/smolvla/deploy_policy.py` | `eval()` returns the 4-tuple that `scripts/eval_policy.py` expects and stops executing an action chunk once the task has succeeded. Applies the per-task settings `smolvla_task_overrides` from the task name (keys given on the command line take precedence). |
+| `policy/smolvla/deploy_policy.yml` | Holds the per-task settings. |
 | `policy/smolvla/eval.sh` | Uses the worker environment `policy/smolvla/.venv` automatically when `SMOLVLA_PYTHON` is not set, and stops with a clear message if the worker Python is older than 3.12. Retries when DexSim crashes while starting (exit 139/134); a crash after `evaluation_metrics.json` has been written counts as a finished run. |
-| `scripts/eval_policy.py` | Prints the traceback before closing the environment, records per-episode task metrics and passes the command-line override keys to the adapter. Success and step metrics are unchanged. |
+| `scripts/eval_policy.py` | Prints the traceback before closing the environment, records per-episode task metrics and passes the command-line override keys to the adapter. Success and step metrics are unchanged; the adapter also works with the unmodified official script. |
 | `policy/smolvla/finetune.sh`, `tools/` | Training and data helpers; not used during evaluation. |
 
 ## Checkpoints and training
@@ -23,44 +23,23 @@ checkpoint), 30k steps, batch size 16. Training data per task: the official 1000
 simulation dataset plus episodes we generated with the official pipeline
 (`launch/run_task.sh`, `random`/`clear` settings). No other data was used.
 
-| Task | Trained run | Hugging Face | Training episodes | Settings (automatic) | Local SR |
-|---|---|---|---|---|---:|
-| click_bell | `xvla_click_bell_run1_2500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-click-bell) | official 1000 + 1500 random | steps 10 | 99% |
-| table_rearrangement | `xvla_table_rearrangement_run1/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-table-rearrangement) | official 1000 | steps 20, fresh | 92%² |
-| water_pouring | `xvla_water_pouring_run1_1900eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-water-pouring) | official 1000 + 600 clear + 300 random | steps 10, fresh, K=4 | 96% |
-| handle_basket | `xvla_handle_basket_run1_1500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-handle-basket) | official 1000 + 500 random | steps 20, fresh, K=4 | 85% |
-| items_handover | `xvla_items_handover_run1_1500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-items-handover) | official 1000 + 500 random | steps 20, fresh | 85%² |
-| drawer_open_place | `xvla_drawer_open_place_run1_2000eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-drawer-open-place) | official 1000 + 1000 random | steps 10 | 95% |
-| mixer_operating | `xvla_mixer_operating_run1_1500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-mixer-operating) | official 1000 + 500 random | steps 20, fresh, K=4 | 99% |
-| item_assembly | `xvla_item_assembly_run1_trim_2000eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-item-assembly) | official 1000 + 1000 random¹ | steps 20 | 83% |
-| manipulate_pipette | `xvla_manipulate_pipette_run1_1500eps/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-manipulate-pipette) | official 1000 + 500 random | steps 20, fresh | 57%² |
-| sample_loading | `xvla_sample_loading_run1/checkpoints/030000` | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-sample-loading) | official 1000 | steps 10, fresh | 15%² |
+| Task | Hugging Face | Training episodes | Inference settings |
+|---|---|---|---|
+| click_bell | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-click-bell) | official 1000 + 1500 random | steps 10 |
+| table_rearrangement | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-table-rearrangement) | official 1000 | steps 20, fresh |
+| water_pouring | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-water-pouring) | official 1000 + 600 clear + 300 random | steps 10, fresh, K=4 |
+| handle_basket | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-handle-basket) | official 1000 + 500 random | steps 20, fresh, K=4 |
+| items_handover | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-items-handover) | official 1000 + 500 random | steps 20, fresh |
+| drawer_open_place | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-drawer-open-place) | official 1000 + 1000 random | steps 10 |
+| mixer_operating | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-mixer-operating) | official 1000 + 500 random | steps 20, fresh, K=4 |
+| item_assembly | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-item-assembly) | official 1000 + 1000 random¹ | steps 20 |
+| manipulate_pipette | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-manipulate-pipette) | official 1000 + 500 random | steps 20, fresh |
+| sample_loading | [link](https://huggingface.co/owen1257173018/robosynchallenge-xvla-sample-loading) | official 1000 | steps 10, fresh |
 
-Settings: *steps* = actions executed per inference call; *fresh* = plan a new action chunk from
-the current observation at every call (otherwise the chunk is replanned only when it is used
-up); *K=4* = average four sampled action chunks. "Local SR" = 100 episodes in our environment
-with the public parameters (`random`, evaluation seed 0) and the plain `eval.sh` command, using
-the starter kit before 2026-10-01 (randomized top camera); the README lists 50-episode results
-with the current starter kit.
+Inference settings are applied automatically from the task name (`smolvla_task_overrides` in
+`policy/smolvla/deploy_policy.yml`): *steps* = actions executed per policy call; *fresh* = a new
+action chunk is planned from the current observation at every call (otherwise the planned chunk
+is executed until it is used up); *K=4* = the average of four sampled action chunks.
 
 ¹ The static end-of-demo hold (arms still after the task is done) is excluded from training
 (metadata only, `tools/trim_static_tails.py`).
-
-² 100 episodes with the starter kit of 2026-10-01 and the current setting. The settings were first
-chosen for SmolVLA; on 2026-10-09/10 every task was re-checked for X-VLA on paired scenes of
-evaluation seeds 0 and 1 (100 episodes per setting and seed), and a change was kept only if it
-won on both sets of scenes together. Changed: manipulate_pipette (one sample instead of K=4: 107 vs
-100 successes on 194 scenes; then 20 actions per call: 113 vs 107 on 193 scenes), items_handover
-(one sample: 174 vs 165 on 200 scenes), table_rearrangement (one sample, 20 actions per call:
-188 vs 176 on 200 scenes), sample_loading (fresh instead of the queue: 27 vs 20 on 197 scenes).
-The other tasks kept their settings.
-
-## Reproduction check (2026-10-02)
-
-From a fresh clone of this repository, with both environments built exactly as in the README
-(starter kit of 2026-10-01, EmbodiChain v0.2.4.post1, numpy 2.x) and the ten checkpoints
-downloaded from Hugging Face (byte-identical to ours), every task was evaluated with the README
-command, 50 episodes each, with an empty Hugging Face cache and `HF_HUB_OFFLINE=1`:
-391/500 successes (78.2%). Our earlier 100-episode runs with the previous starter kit (randomized
-top camera) averaged 80.6%; no task differs significantly between the two (exact McNemar on the
-shared scenes, all p ≥ 0.18).

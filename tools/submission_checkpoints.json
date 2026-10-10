@@ -1,0 +1,12 @@
+{
+  "click_bell": "xvla_click_bell_run1_2500eps/checkpoints/030000",
+  "table_rearrangement": "xvla_table_rearrangement_run1/checkpoints/030000",
+  "water_pouring": "xvla_water_pouring_run1_1900eps/checkpoints/030000",
+  "handle_basket": "xvla_handle_basket_run1_1500eps/checkpoints/030000",
+  "items_handover": "xvla_items_handover_run1_1500eps/checkpoints/030000",
+  "drawer_open_place": "xvla_drawer_open_place_run1_2000eps/checkpoints/030000",
+  "mixer_operating": "xvla_mixer_operating_run1_1500eps/checkpoints/030000",
+  "item_assembly": "xvla_item_assembly_run1_trim_2000eps/checkpoints/030000",
+  "manipulate_pipette": "xvla_manipulate_pipette_run1_1500eps/checkpoints/030000",
+  "sample_loading": "xvla_sample_loading_run1/checkpoints/030000"
+}

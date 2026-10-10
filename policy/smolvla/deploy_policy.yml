@@ -31,54 +31,54 @@ smolvla_steps: 10
 smolvla_rescale_gripper: auto
 smolvla_gripper_indices: [6, 13]
 smolvla_gripper_source_range: [0.0, 1.0]
-# Inference-time knobs added by us (defaults keep the stock behaviour):
-#   smolvla_action_samples: average N flow-matching draws per action chunk (1 = stock)
-#   smolvla_chunk_mode: "queue" = stock persistent action queue, "fresh" = re-plan每次
-#   smolvla_seed: base seed for the policy's sampling noise; null = stochastic (stock)
+# Inference settings (the defaults are LeRobot's stock behaviour):
+#   smolvla_steps: actions executed per policy call
+#   smolvla_chunk_mode: "queue" = execute the planned action chunk until it is used up,
+#                       "fresh" = plan a new chunk from the current observation at every call
+#   smolvla_action_samples: number of sampled action chunks averaged per call
+#   smolvla_seed: seed for the policy's sampling noise (null = not seeded)
 smolvla_action_samples: 1
 smolvla_chunk_mode: queue
 smolvla_seed: null
 # Anti-stall (0 = off): if the arm joints move less than smolvla_antistall_eps rad
-# over smolvla_antistall_window env steps (longer than any pause in the demos) and
-# the task is not done, draw smolvla_antistall_samples chunks and execute
-# smolvla_antistall_steps actions of the one that moves the arms furthest.
+# over smolvla_antistall_window env steps and the task is not done, draw
+# smolvla_antistall_samples chunks and execute smolvla_antistall_steps actions of
+# the one that moves the arms furthest.
 smolvla_antistall_window: 0
 smolvla_antistall_eps: 0.01
 smolvla_antistall_samples: 8
 smolvla_antistall_steps: 50
-# Flow-matching integration steps per action chunk at inference (0 = checkpoint default, 10).
+# Flow-matching integration steps per action chunk (0 = checkpoint default).
 smolvla_denoise_steps: 0
-# Per-task inference settings validated with paired (same scene seed) evals.
-# Applied on top of the values above; any key given explicitly on the eval
-# command line (e.g. --smolvla_steps 10) takes precedence over this table.
-# steps 20: significantly better for items_handover/mixer (paired McNemar);
-# handle_basket/item_assembly: best measured config, 10 vs 20 not significant.
+# Per-task inference settings, selected by task_name and applied on top of the
+# values above. A key given explicitly on the eval command line takes precedence.
+# Tasks not listed use the values above.
 smolvla_task_overrides:
-  table_rearrangement:        # X-VLA checkpoint (2026-10-10, eval seeds 0 and 1, paired): fresh K1 steps 20 188 vs fresh K4 steps 10 176 successes (200 scenes); fresh K1 steps 10 88 vs 89 (seed 0)
+  table_rearrangement:
     smolvla_steps: 20
     smolvla_chunk_mode: fresh
     smolvla_action_samples: 1
-  items_handover:              # X-VLA checkpoint (2026-10-10, eval seeds 0 and 1, paired): fresh K1 174 vs fresh K4 165 successes (200 scenes); SmolVLA used fresh+K4
+  water_pouring:
+    smolvla_chunk_mode: fresh
+    smolvla_action_samples: 4
+  handle_basket:
+    smolvla_steps: 20
+    smolvla_chunk_mode: fresh
+    smolvla_action_samples: 4
+  items_handover:
     smolvla_steps: 20
     smolvla_chunk_mode: fresh
     smolvla_action_samples: 1
-  mixer_operating:            # X-VLA checkpoint: fresh+K4 99% vs queue 52% (100 scenes, 47/0); SmolVLA fallback used steps 20 only
+  mixer_operating:
     smolvla_steps: 20
     smolvla_chunk_mode: fresh
     smolvla_action_samples: 4
-  handle_basket:               # fresh+K4: 58% -> 84% on paired seeds, p=0.0023
+  item_assembly:
     smolvla_steps: 20
-    smolvla_chunk_mode: fresh
-    smolvla_action_samples: 4
-  manipulate_pipette:          # X-VLA checkpoint (2026-10-09, eval seeds 0 and 1, paired): fresh K1 107 vs fresh K4 100 successes (194 scenes); steps 20 113 vs steps 10 107 (193 scenes); queue K1 49%, steps 5 49%. SmolVLA used fresh+K4, steps 10
+  manipulate_pipette:
     smolvla_steps: 20
     smolvla_chunk_mode: fresh
     smolvla_action_samples: 1
-  item_assembly:               # fresh+K4 did not help (58% -> 48%, p=0.40): stock
-    smolvla_steps: 20
-  water_pouring:               # fresh+K4: 68% -> 82% (run1, p=0.19, not proven); B >= A -> adopt
-    smolvla_chunk_mode: fresh
-    smolvla_action_samples: 4
-  sample_loading:              # X-VLA checkpoint (2026-10-10, eval seeds 0 and 1, paired): fresh K1 27 vs queue 20 successes (197 scenes); fresh K1 steps 20 13 vs 9 (seed 0)
+  sample_loading:
     smolvla_chunk_mode: fresh
     smolvla_action_samples: 1

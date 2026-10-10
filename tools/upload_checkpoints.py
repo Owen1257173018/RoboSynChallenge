@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-"""Upload the per-task checkpoints listed in SUBMISSION.md to the Hugging Face Hub.
+"""Upload the per-task checkpoints listed in tools/submission_checkpoints.json to the Hugging Face Hub.
 
 Each task gets its own model repo, <namespace>/<prefix>-<policy type>-<task>
 (policy type from the checkpoint's config.json: smolvla or xvla), containing the
 LeRobot ``pretrained_model`` folder (config, weights, pre/post-processors,
-tokenizer, train_config.json). The script reads the checkpoint table in
-SUBMISSION.md, so the upload always matches what the submission notes say.
+tokenizer, train_config.json). The task -> checkpoint mapping is read from
+tools/submission_checkpoints.json (paths under outputs/train/).
 
 Dry run by default: it only prints what it would upload. Nothing is sent to the
 Hub unless --upload is given.
@@ -19,20 +19,16 @@ Hub unless --upload is given.
 import argparse
 import json
 import os
-import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ROW = re.compile(r"^\| (\w+) \| `([^`]+/checkpoints/\d+)` \|")
+CHECKPOINTS_JSON = REPO_ROOT / "tools" / "submission_checkpoints.json"
 
 
-def submitted_checkpoints(submission_md: Path) -> dict[str, Path]:
-    table = {}
-    for line in submission_md.read_text(encoding="utf-8").splitlines():
-        m = ROW.match(line)
-        if m:
-            table[m.group(1)] = REPO_ROOT / "outputs" / "train" / m.group(2) / "pretrained_model"
-    return table
+def submitted_checkpoints(mapping_json: Path = CHECKPOINTS_JSON) -> dict[str, Path]:
+    """task -> outputs/train/<run>/checkpoints/<step>/pretrained_model, from tools/submission_checkpoints.json."""
+    mapping = json.loads(mapping_json.read_text(encoding="utf-8"))
+    return {task: REPO_ROOT / "outputs" / "train" / ckpt / "pretrained_model" for task, ckpt in mapping.items()}
 
 
 def folder_size(path: Path) -> int:
@@ -55,11 +51,11 @@ def main():
     args = ap.parse_args()
 
     os.environ["HF_ENDPOINT"] = args.endpoint
-    table = submitted_checkpoints(REPO_ROOT / "SUBMISSION.md")
+    table = submitted_checkpoints()
     if args.tasks:
         table = {t: p for t, p in table.items() if t in args.tasks}
     if not table:
-        raise SystemExit("no checkpoint rows found in SUBMISSION.md")
+        raise SystemExit(f"no checkpoints listed in {CHECKPOINTS_JSON}")
 
     missing = [str(p) for p in table.values() if not (p / "model.safetensors").exists()]
     if missing:
@@ -94,7 +90,7 @@ def main():
         urls[task] = f"https://huggingface.co/{repo_id}"
         print(f"  uploaded {task}: {urls[task]}")
 
-    print("\nPaste into SUBMISSION.md:")
+    print("\nHugging Face repos:")
     for task, url in urls.items():
         print(f"| {task} | {url} |")
 

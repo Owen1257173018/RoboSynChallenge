@@ -182,14 +182,11 @@ def main() -> None:
     out.append(f"⚠️ 时间戳早于 {LEGACY_GRIPPER_BEFORE} 的评测用的是 `--smolvla_rescale_gripper true`，"
                "对夹爪动作为 0-1 归一化值的任务会把夹爪锁死，不可与其余结果比较，已排除在选优之外。")
     out.append("")
-    # the checkpoint each task submits, read from SUBMISSION.md ("| task | `run/checkpoints/...`")
+    # the checkpoint each task submits: tools/submission_checkpoints.json ({task: "run/checkpoints/<step>"})
     submitted = {}
-    sub = Path("SUBMISSION.md")
+    sub = Path("tools/submission_checkpoints.json")
     if sub.exists():
-        for line in sub.read_text().splitlines():
-            mm = re.match(r"\| (\w+) \| `([^/`]+)/checkpoints", line)
-            if mm:
-                submitted[mm.group(1)] = mm.group(2)
+        submitted = {task: ckpt.split("/")[0] for task, ckpt in json.loads(sub.read_text()).items()}
     finals = {}
     for r in rows:
         if not r["model"].startswith("final") or r["legacy"]:
