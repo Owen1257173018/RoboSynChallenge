@@ -43,16 +43,16 @@ One public Hugging Face model repository per task, downloaded into `checkpoints/
 (run from the repository root):
 
 ```bash
-HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-click-bell --local-dir checkpoints/click_bell
-HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-table-rearrangement --local-dir checkpoints/table_rearrangement
-HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-water-pouring --local-dir checkpoints/water_pouring
-HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-handle-basket --local-dir checkpoints/handle_basket
-HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-items-handover --local-dir checkpoints/items_handover
-HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-drawer-open-place --local-dir checkpoints/drawer_open_place
-HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-mixer-operating --local-dir checkpoints/mixer_operating
-HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-item-assembly --local-dir checkpoints/item_assembly
-HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-manipulate-pipette --local-dir checkpoints/manipulate_pipette
-HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-sample-loading --local-dir checkpoints/sample_loading
+policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-click-bell --local-dir checkpoints/click_bell
+policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-table-rearrangement --local-dir checkpoints/table_rearrangement
+policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-water-pouring --local-dir checkpoints/water_pouring
+policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-handle-basket --local-dir checkpoints/handle_basket
+policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-items-handover --local-dir checkpoints/items_handover
+policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-drawer-open-place --local-dir checkpoints/drawer_open_place
+policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-mixer-operating --local-dir checkpoints/mixer_operating
+policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-item-assembly --local-dir checkpoints/item_assembly
+policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-manipulate-pipette --local-dir checkpoints/manipulate_pipette
+policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-sample-loading --local-dir checkpoints/sample_loading
 ```
 
 ## 3. Evaluate
