@@ -39,46 +39,65 @@ uv pip install -e "./lerobot[smolvla,dataset]" && deactivate && cd ../..
 
 ## 2. Download the checkpoints
 
+One public Hugging Face model repository per task, downloaded into `checkpoints/<task_name>`
+(run from the repository root):
+
 ```bash
-for t in click_bell table_rearrangement water_pouring handle_basket items_handover \
-         drawer_open_place mixer_operating item_assembly manipulate_pipette sample_loading; do
-  HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download \
-    "owen1257173018/robosynchallenge-xvla-${t//_/-}" --local-dir "checkpoints/$t"
-done
+HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-click-bell --local-dir checkpoints/click_bell
+HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-table-rearrangement --local-dir checkpoints/table_rearrangement
+HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-water-pouring --local-dir checkpoints/water_pouring
+HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-handle-basket --local-dir checkpoints/handle_basket
+HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-items-handover --local-dir checkpoints/items_handover
+HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-drawer-open-place --local-dir checkpoints/drawer_open_place
+HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-mixer-operating --local-dir checkpoints/mixer_operating
+HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-item-assembly --local-dir checkpoints/item_assembly
+HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-manipulate-pipette --local-dir checkpoints/manipulate_pipette
+HF_ENDPOINT=https://huggingface.co policy/smolvla/.venv/bin/hf download owen1257173018/robosynchallenge-xvla-sample-loading --local-dir checkpoints/sample_loading
 ```
 
 ## 3. Evaluate
 
+One command per task, from the repository root with the simulator environment active
+(`source ../EmbodiChain/.venv/bin/activate`). The `0` after the checkpoint path is the GPU id.
+
 ```bash
-source ../EmbodiChain/.venv/bin/activate
-bash policy/smolvla/eval.sh <task_name> random checkpoints/<task_name> <gpu_id> \
-  --pytorch_device cuda --headless true --renderer auto --max_episodes 100
+bash policy/smolvla/eval.sh click_bell          random checkpoints/click_bell          0 --pytorch_device cuda --headless true --renderer auto --max_episodes 100
+bash policy/smolvla/eval.sh table_rearrangement random checkpoints/table_rearrangement 0 --pytorch_device cuda --headless true --renderer auto --max_episodes 100
+bash policy/smolvla/eval.sh water_pouring       random checkpoints/water_pouring       0 --pytorch_device cuda --headless true --renderer auto --max_episodes 100
+bash policy/smolvla/eval.sh handle_basket       random checkpoints/handle_basket       0 --pytorch_device cuda --headless true --renderer auto --max_episodes 100
+bash policy/smolvla/eval.sh items_handover      random checkpoints/items_handover      0 --pytorch_device cuda --headless true --renderer auto --max_episodes 100
+bash policy/smolvla/eval.sh drawer_open_place   random checkpoints/drawer_open_place   0 --pytorch_device cuda --headless true --renderer auto --max_episodes 100
+bash policy/smolvla/eval.sh mixer_operating     random checkpoints/mixer_operating     0 --pytorch_device cuda --headless true --renderer auto --max_episodes 100
+bash policy/smolvla/eval.sh item_assembly       random checkpoints/item_assembly       0 --pytorch_device cuda --headless true --renderer auto --max_episodes 100
+bash policy/smolvla/eval.sh manipulate_pipette  random checkpoints/manipulate_pipette  0 --pytorch_device cuda --headless true --renderer auto --max_episodes 100
+bash policy/smolvla/eval.sh sample_loading      random checkpoints/sample_loading      0 --pytorch_device cuda --headless true --renderer auto --max_episodes 100 --eval_max_seed_attempts_per_episodes 300
 ```
 
-No network access is needed once the checkpoints are downloaded. The start-up log shows the
-worker environment and the task's settings (`[smolvla] inference config: ...`). Results are
+All tasks use the same adapter; the task's inference settings are applied automatically from the
+task name. No network access is needed once the checkpoints are downloaded. The start-up log shows
+the worker environment and the task's settings (`[smolvla] inference config: ...`). Results are
 written to `eval_result/<task_name>/smolvla/random/None/.../evaluation_metrics.json`.
 
-For some seeds the evaluator's expert pre-check of `sample_loading` rejects 100 candidate scenes in
-a row and stops ("Could not find an expert-feasible seed"; e.g. evaluation seed 1, episode 63).
-Adding `--eval_max_seed_attempts_per_episodes 300` to the command avoids this.
+The extra option for `sample_loading` raises the number of candidate scenes the evaluator's expert
+pre-check may try per episode: for some seeds it otherwise rejects 100 candidates in a row and
+stops ("Could not find an expert-feasible seed").
 
 ## Checkpoints
 
-| Task | Hugging Face checkpoint | Local success rate |
-|---|---|---:|
-| click_bell | [owen1257173018/robosynchallenge-xvla-click-bell](https://huggingface.co/owen1257173018/robosynchallenge-xvla-click-bell) | 99% |
-| table_rearrangement | [owen1257173018/robosynchallenge-xvla-table-rearrangement](https://huggingface.co/owen1257173018/robosynchallenge-xvla-table-rearrangement) | 92% |
-| water_pouring | [owen1257173018/robosynchallenge-xvla-water-pouring](https://huggingface.co/owen1257173018/robosynchallenge-xvla-water-pouring) | 94% |
-| handle_basket | [owen1257173018/robosynchallenge-xvla-handle-basket](https://huggingface.co/owen1257173018/robosynchallenge-xvla-handle-basket) | 84% |
-| items_handover | [owen1257173018/robosynchallenge-xvla-items-handover](https://huggingface.co/owen1257173018/robosynchallenge-xvla-items-handover) | 85% |
-| drawer_open_place | [owen1257173018/robosynchallenge-xvla-drawer-open-place](https://huggingface.co/owen1257173018/robosynchallenge-xvla-drawer-open-place) | 91% |
-| mixer_operating | [owen1257173018/robosynchallenge-xvla-mixer-operating](https://huggingface.co/owen1257173018/robosynchallenge-xvla-mixer-operating) | 100% |
-| item_assembly | [owen1257173018/robosynchallenge-xvla-item-assembly](https://huggingface.co/owen1257173018/robosynchallenge-xvla-item-assembly) | 78% |
-| manipulate_pipette | [owen1257173018/robosynchallenge-xvla-manipulate-pipette](https://huggingface.co/owen1257173018/robosynchallenge-xvla-manipulate-pipette) | 57% |
-| sample_loading | [owen1257173018/robosynchallenge-xvla-sample-loading](https://huggingface.co/owen1257173018/robosynchallenge-xvla-sample-loading) | 15% |
+| Task | Hugging Face model repository | Local path | Local success rate |
+|---|---|---|---:|
+| click_bell | [owen1257173018/robosynchallenge-xvla-click-bell](https://huggingface.co/owen1257173018/robosynchallenge-xvla-click-bell) | `checkpoints/click_bell` | 99% |
+| table_rearrangement | [owen1257173018/robosynchallenge-xvla-table-rearrangement](https://huggingface.co/owen1257173018/robosynchallenge-xvla-table-rearrangement) | `checkpoints/table_rearrangement` | 92% |
+| water_pouring | [owen1257173018/robosynchallenge-xvla-water-pouring](https://huggingface.co/owen1257173018/robosynchallenge-xvla-water-pouring) | `checkpoints/water_pouring` | 94% |
+| handle_basket | [owen1257173018/robosynchallenge-xvla-handle-basket](https://huggingface.co/owen1257173018/robosynchallenge-xvla-handle-basket) | `checkpoints/handle_basket` | 84% |
+| items_handover | [owen1257173018/robosynchallenge-xvla-items-handover](https://huggingface.co/owen1257173018/robosynchallenge-xvla-items-handover) | `checkpoints/items_handover` | 85% |
+| drawer_open_place | [owen1257173018/robosynchallenge-xvla-drawer-open-place](https://huggingface.co/owen1257173018/robosynchallenge-xvla-drawer-open-place) | `checkpoints/drawer_open_place` | 91% |
+| mixer_operating | [owen1257173018/robosynchallenge-xvla-mixer-operating](https://huggingface.co/owen1257173018/robosynchallenge-xvla-mixer-operating) | `checkpoints/mixer_operating` | 100% |
+| item_assembly | [owen1257173018/robosynchallenge-xvla-item-assembly](https://huggingface.co/owen1257173018/robosynchallenge-xvla-item-assembly) | `checkpoints/item_assembly` | 78% |
+| manipulate_pipette | [owen1257173018/robosynchallenge-xvla-manipulate-pipette](https://huggingface.co/owen1257173018/robosynchallenge-xvla-manipulate-pipette) | `checkpoints/manipulate_pipette` | 57% |
+| sample_loading | [owen1257173018/robosynchallenge-xvla-sample-loading](https://huggingface.co/owen1257173018/robosynchallenge-xvla-sample-loading) | `checkpoints/sample_loading` | 15% |
 
-Local success rate: 100 episodes per task with the command above and the public parameters
+Local success rate: 100 episodes per task with the commands above and the public parameters
 (`random` setting, evaluation seed 0); 79.5% on average.
 
 ## More
